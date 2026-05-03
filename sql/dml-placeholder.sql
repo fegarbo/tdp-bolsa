@@ -1,0 +1,2 @@
+-- DML: Insert, Update, Delete operations for testing
+-- Este arquivo será preenchido no Modelo Físico com testes de integridade
