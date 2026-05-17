@@ -1,2 +1,0 @@
--- DDL: Create Tables, Constraints, Indexes
--- Este arquivo será preenchido no Modelo Físico com todos os CREATE TABLE statements

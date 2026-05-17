@@ -109,9 +109,10 @@ erDiagram
 │   ├── 01-conceptual-model.md  # Diagrama ER e definição das entidades
 │   ├── 02-architecture.md      # Decisões arquiteturais e justificativas
 │   ├── 03-logical-model.md     # Schema 3FN, tipos, constraints e SCD Type 2
+│   ├── modeloConceitual.png    # Diagrama ER exportado do BrModelo
 │   └── project-context.md      # Contexto geral e estado atual do projeto
 └── sql/
-    ├── ddl.sql                 # CREATE TABLE com todas as constraints
+    ├── ddl.sql                 # CREATE TABLE, índices, VIEW e trigger
     ├── dml.sql                 # INSERT / UPDATE / operações SCD Type 2
     └── dql.sql                 # SELECT — carteira, histórico, reconciliação
 ```

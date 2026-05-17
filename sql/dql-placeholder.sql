@@ -1,2 +1,0 @@
--- DQL: Select queries for reports and analysis
--- Este arquivo será preenchido no Modelo Físico com consultas de validação

@@ -138,7 +138,7 @@ FROM   investidor
 WHERE  cpf_cnpj = '12345678901';
 
 UPDATE investidor
-SET    nome             = 'Fernando Garbo Silva',
+SET    nome             = 'Fernando Garbo Pimentel',
        data_atualizacao = CURRENT_TIMESTAMP
 WHERE  cpf_cnpj = '12345678901';
 

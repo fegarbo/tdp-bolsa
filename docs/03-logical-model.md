@@ -389,7 +389,7 @@ SE tipo_operacao = 'V' (Venda):
     UPDATE data_atualizacao = CURRENT_TIMESTAMP
 ```
 
-> A validação de saldo suficiente para venda (`quantidade >= NEW.quantidade`) deve ser feita pela aplicação ou via constraint CHECK em trigger de BEFORE INSERT em NEGOCIACAO.
+> A validação de saldo suficiente para venda (`quantidade >= NEW.quantidade`) é realizada no próprio trigger: se o saldo for insuficiente, um `RAISE EXCEPTION` é lançado e toda a transação (incluindo o INSERT em NEGOCIACAO) é revertida automaticamente.
 
 ---
 

@@ -140,7 +140,7 @@ erDiagram
 | Atributo | Tipo | Descrição | Constraint |
 | --- | --- | --- | --- |
 | contato_id | Inteiro | Identificador surrogate | PK, gerado pelo banco |
-| tipo | String | Tipo do contato: TEL, EML | Obrigatório |
+| tipo | String | Tipo do contato: TEL, EML, WHT | Obrigatório |
 | valor | String | Valor do contato (número ou endereço) | Obrigatório |
 
 > Extraída de INVESTIDOR para suportar múltiplos contatos por pessoa. Substitui os campos `email` e `telefone` que existiam diretamente em INVESTIDOR.
