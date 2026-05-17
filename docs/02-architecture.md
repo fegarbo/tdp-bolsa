@@ -8,11 +8,11 @@ date: '2026-04-21'
 sgbd: 'PostgreSQL'
 ---
 
-# Architecture Decision Document - Sistema de Gestão de Bolsa de Valores
+# Documento de Decisões Arquiteturais - Sistema de Gestão de Bolsa de Valores
 
 _Modelo Conceitual, Lógico e Físico para Banco de Dados de Bolsa de Valores_
 
-## Overview
+## Visão Geral
 
 Este documento captura as decisões arquitetônicas para o design de banco de dados de uma corretora de bolsa de valores, focando em:
 - **Modelo Conceitual:** Entidades, atributos e relacionamentos
@@ -21,4 +21,4 @@ Este documento captura as decisões arquitetônicas para o design de banco de da
 
 **Padrão:** OLTP + OLAP com SCD Type 2 para histórico de dados mestres
 **SGBD:** PostgreSQL
-**Deadline:** 10/05/2026
+**Prazo:** 10/05/2026

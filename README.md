@@ -1,42 +1,42 @@
-# Stock Exchange Database — Relational Model
+# Sistema de Gestão de Bolsa de Valores — Modelo Relacional
 
-A complete relational database design for a stock brokerage system, covering the full modeling pipeline: **Conceptual → Logical → Physical**.
+Design completo de banco de dados relacional para uma corretora de valores, cobrindo todo o pipeline de modelagem: **Conceitual → Lógico → Físico**.
 
-Built for **PostgreSQL**, the schema handles real-time trade operations (OLTP) and historical portfolio analysis (OLAP) within a single, well-normalized design.
-
----
-
-## Overview
-
-The system manages the core entities of a brokerage operation:
-
-- **Investors** — individuals (CPF) and legal entities (CNPJ)
-- **Companies** — listed on the exchange, identified by ticker
-- **Stocks** — issued by companies, with full trade history
-- **Trades** — immutable buy/sell records per investor and stock
-- **Price History** — append-only time series of stock quotes
-- **Portfolio Balance** — consolidated position per investor per stock
-
-Key design decisions:
-
-- **SCD Type 2** on master data (Investors, Companies, Stocks) for complete change history
-- **Immutable records** on Trades and Quotes — audit-safe, append-only
-- **Hybrid OLTP + OLAP** support without schema redesign
-- **Strong referential integrity** via FK constraints, CHECK constraints, and composite UNIQUE indexes
+Construído para **PostgreSQL**, o schema suporta operações transacionais em tempo real (OLTP) e análises históricas de carteira (OLAP) em um design único e bem normalizado.
 
 ---
 
-## Tech Stack
+## Visão Geral
 
-| Layer    | Technology        |
-| -------- | ----------------- |
-| Database | PostgreSQL 13+    |
-| Modeling | 3NF + SCD Type 2  |
-| Scripts  | DDL · DML · DQL   |
+O sistema gerencia as entidades centrais de uma operação de corretora:
+
+- **Investidores** — pessoas físicas (CPF) e jurídicas (CNPJ)
+- **Empresas** — listadas na bolsa, identificadas por CNPJ
+- **Ações** — emitidas por empresas, identificadas por ticker (ex: PETR3, SANB4)
+- **Negociações** — registros imutáveis de compra/venda por investidor e ação
+- **Cotações** — série temporal append-only de preços por ação
+- **Saldo de Carteira** — posição consolidada por par investidor × ação
+
+Principais decisões de design:
+
+- **SCD Type 2** em dados mestres (Investidores, Empresas, Ações) para histórico completo de mudanças
+- **Registros imutáveis** em Negociações e Cotações — apenas INSERT, trilha de auditoria garantida
+- **Suporte híbrido OLTP + OLAP** sem necessidade de redesign futuro
+- **Integridade referencial forte** via constraints FK, CHECK e índices UNIQUE compostos
 
 ---
 
-## Entity-Relationship Diagram
+## Tecnologias
+
+| Camada | Tecnologia |
+| --- | --- |
+| Banco de Dados | PostgreSQL 13+ |
+| Modelagem | 3FN + SCD Type 2 |
+| Scripts | DDL · DML · DQL |
+
+---
+
+## Diagrama Entidade-Relacionamento
 
 ```mermaid
 erDiagram
@@ -50,7 +50,8 @@ erDiagram
     ACAO ||--o{ SALDO_CARTEIRA : registrada_em
 
     INVESTIDOR {
-        string cpf_cnpj PK
+        int investidor_id PK
+        string cpf_cnpj UK
         string nome
         string tipo
         string email
@@ -58,7 +59,8 @@ erDiagram
     }
 
     EMPRESA {
-        string ticker PK
+        int empresa_id PK
+        string cnpj UK
         string nome
         string setor
         decimal valor_mercado
@@ -66,7 +68,8 @@ erDiagram
 
     ACAO {
         int acao_id PK
-        string descricao
+        string ticker UK
+        string tipo
     }
 
     NEGOCIACAO {
@@ -92,46 +95,47 @@ erDiagram
 
 ---
 
-## Repository Structure
+## Estrutura do Repositório
 
 ```
 ├── docs/
-│   ├── PRD.md                  # Requirements, scope, and success criteria
-│   ├── 01-conceptual-model.md  # ER diagram and entity definitions
-│   └── 02-architecture.md      # Architecture decisions and design rationale
+│   ├── PRD.md                  # Requisitos, escopo e critérios de sucesso
+│   ├── 01-conceptual-model.md  # Diagrama ER e definição das entidades
+│   ├── 02-architecture.md      # Decisões arquiteturais e justificativas
+│   └── project-context.md      # Contexto geral e estado atual do projeto
 └── sql/
-    ├── ddl.sql                 # CREATE TABLE with all constraints
-    ├── dml.sql                 # INSERT / UPDATE / SCD Type 2 test operations
-    └── dql.sql                 # SELECT queries — portfolio, history, reconciliation
+    ├── ddl.sql                 # CREATE TABLE com todas as constraints
+    ├── dml.sql                 # INSERT / UPDATE / operações SCD Type 2
+    └── dql.sql                 # SELECT — carteira, histórico, reconciliação
 ```
 
 ---
 
-## Running the Scripts
+## Executando os Scripts
 
 ```bash
-# Create the schema
-psql -U <user> -d <database> -f sql/ddl.sql
+# Criar o schema
+psql -U <usuario> -d <banco> -f sql/ddl.sql
 
-# Load test data
-psql -U <user> -d <database> -f sql/dml.sql
+# Carregar dados de teste
+psql -U <usuario> -d <banco> -f sql/dml.sql
 
-# Run analytical queries
-psql -U <user> -d <database> -f sql/dql.sql
+# Executar consultas analíticas
+psql -U <usuario> -d <banco> -f sql/dql.sql
 ```
 
 ---
 
-## Documentation
+## Documentação
 
-| Document | Description |
-| -------- | ----------- |
-| [PRD](docs/PRD.md) | Requirements, scope, and success criteria |
-| [Conceptual Model](docs/01-conceptual-model.md) | Entities, attributes, and relationships |
-| [Architecture](docs/02-architecture.md) | Design decisions and trade-offs |
+| Documento | Descrição |
+| --- | --- |
+| [PRD](docs/PRD.md) | Requisitos, escopo e critérios de sucesso |
+| [Modelo Conceitual](docs/01-conceptual-model.md) | Entidades, atributos e relacionamentos |
+| [Arquitetura](docs/02-architecture.md) | Decisões de design e justificativas |
 
 ---
 
-## Author
+## Autor
 
 Fernando Garbo
