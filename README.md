@@ -108,6 +108,7 @@ erDiagram
 │   ├── PRD.md                  # Requisitos, escopo e critérios de sucesso
 │   ├── 01-conceptual-model.md  # Diagrama ER e definição das entidades
 │   ├── 02-architecture.md      # Decisões arquiteturais e justificativas
+│   ├── 03-logical-model.md     # Schema 3FN, tipos, constraints e SCD Type 2
 │   └── project-context.md      # Contexto geral e estado atual do projeto
 └── sql/
     ├── ddl.sql                 # CREATE TABLE com todas as constraints
@@ -139,6 +140,7 @@ psql -U <usuario> -d <banco> -f sql/dql.sql
 | [PRD](docs/PRD.md) | Requisitos, escopo e critérios de sucesso |
 | [Modelo Conceitual](docs/01-conceptual-model.md) | Entidades, atributos e relacionamentos |
 | [Arquitetura](docs/02-architecture.md) | Decisões de design e justificativas |
+| [Modelo Lógico](docs/03-logical-model.md) | Schema 3FN, tipos de dados, constraints e SCD Type 2 |
 
 ---
 

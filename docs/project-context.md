@@ -4,7 +4,7 @@
 **Autor:** Fernando Garbo
 **SGBD:** PostgreSQL 13+
 **Deadline:** 10/05/2026 (meta interna) | 17/05/2026 (prazo oficial)
-**Status atual:** Modelo Conceitual ✅ validado → Modelo Lógico 🔄 em andamento
+**Status atual:** Modelo Conceitual ✅ validado → Modelo Lógico ✅ concluído → Modelo Físico 🔄 em andamento
 
 ---
 
@@ -67,5 +67,5 @@ Suporte simultâneo a **OLTP** (negociações em tempo real) e **OLAP** (relató
 
 1. ✅ Concluir validação dos relacionamentos (7 validados)
 2. ✅ Resolver decisões pendentes (CONTATO, valor_mercado, cisão societária)
-3. 🔄 Produzir **Modelo Lógico** (schema 3NF + SCD Type 2)
-4. Produzir **Modelo Físico**: `sql/ddl.sql`, `sql/dml.sql`, `sql/dql.sql`
+3. ✅ Produzir **Modelo Lógico** (schema 3NF + SCD Type 2) → `docs/03-logical-model.md`
+4. 🔄 Produzir **Modelo Físico**: `sql/ddl.sql`, `sql/dml.sql`, `sql/dql.sql`
