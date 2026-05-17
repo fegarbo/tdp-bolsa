@@ -37,5 +37,3 @@ logs/
 
 # Arquivos locais de geração de diagramas
 generate_er_diagram.py
-docs/*.png
-docs/*.jpg
