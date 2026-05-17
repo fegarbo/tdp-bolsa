@@ -1,116 +1,75 @@
 # Modelo Conceitual - Sistema de Gestão de Bolsa de Valores
 
-**Data:** 2026-04-21  
-**Versão:** 1.0  
-**Status:** Para Validação
+**Data:** 2026-04-21
+**Versão:** 1.2
+**Status:** Validado
 
 ---
 
-## 📋 Resumo Executivo
+## Resumo Executivo
 
-O modelo conceitual define as entidades principais e seus relacionamentos para um sistema de gestão de bolsa de valores. A estrutura suporta:
+O modelo conceitual define as entidades de negócio e seus relacionamentos para um sistema de gestão de bolsa de valores. A estrutura suporta:
+
 - **OLTP:** Negociações em tempo real
 - **OLAP:** Relatórios e análises históricas
-- **SCD Type 2:** Histórico completo de mudanças em dados mestres
 - **Integridade Referencial:** Relacionamentos fortes entre entidades
+
+> **Nota de Design:** A necessidade de rastrear histórico de mudanças em dados mestres (Investidores, Empresas, Ações) é um requisito de negócio. O mecanismo de implementação desse histórico (padrão SCD Type 2) é uma decisão de design registrada no Modelo Lógico.
 
 ---
 
-## 🎨 Diagrama ER (Entidade-Relacionamento)
+## Diagrama ER (Entidade-Relacionamento)
 
 ```mermaid
 erDiagram
     INVESTIDOR ||--o{ NEGOCIACAO : realiza
     INVESTIDOR ||--o{ SALDO_CARTEIRA : possui
-    INVESTIDOR ||--o{ INVESTIDOR_HISTORICO : historico
-    
+
     EMPRESA ||--o{ ACAO : emite
-    EMPRESA ||--o{ EMPRESA_HISTORICO : historico
-    
-    ACAO ||--o{ NEGOCIACAO : negocia
-    ACAO ||--o{ COTACAO : possui
-    ACAO ||--o{ SALDO_CARTEIRA : registra
-    ACAO ||--o{ ACAO_HISTORICO : historico
-    
+
+    ACAO ||--o{ NEGOCIACAO : negociada_em
+    ACAO ||--o{ COTACAO : possui_cotacao
+    ACAO ||--o{ SALDO_CARTEIRA : registrada_em
+
     INVESTIDOR {
-        int investidor_id PK
+        int  investidor_id PK
         string cpf_cnpj UK
         string nome
         string tipo
         string email
         string telefone
-        timestamp data_criacao
     }
-    
-    INVESTIDOR_HISTORICO {
-        int inv_hist_id PK
-        int investidor_id FK
-        string cpf_cnpj
-        string nome
-        string tipo
-        string email
-        string telefone
-        date data_inicio
-        date data_fim "NULL se ativo"
-    }
-    
+
     EMPRESA {
-        int empresa_id PK
-        string ticker UK
+        int    empresa_id PK
+        string cnpj UK
         string nome
         string setor
         decimal valor_mercado
-        timestamp data_criacao
     }
-    
-    EMPRESA_HISTORICO {
-        int emp_hist_id PK
-        int empresa_id FK
-        string ticker
-        string nome
-        string setor
-        decimal valor_mercado
-        date data_inicio
-        date data_fim "NULL se ativo"
-    }
-    
+
     ACAO {
-        int acao_id PK
-        int empresa_id FK
-        string descricao
-        timestamp data_criacao
+        int    acao_id PK
+        string ticker UK
+        string tipo
     }
-    
-    ACAO_HISTORICO {
-        int acao_hist_id PK
-        int acao_id FK
-        int empresa_id
-        string descricao
-        date data_inicio
-        date data_fim "NULL se ativo"
-    }
-    
+
     NEGOCIACAO {
-        int negociacao_id PK
-        int investidor_id FK
-        int acao_id FK
-        string tipo_operacao "C ou V"
-        int quantidade
+        int     negociacao_id PK
+        string  tipo_operacao
+        int     quantidade
         decimal valor_unitario
         timestamp data_hora_transacao
     }
-    
+
     COTACAO {
-        int cotacao_id PK
-        int acao_id FK
+        int     cotacao_id PK
         decimal valor
         timestamp data_hora
     }
-    
+
     SALDO_CARTEIRA {
-        int saldo_carteira_id PK
-        int investidor_id FK
-        int acao_id FK
+        int saldo_id PK
         int quantidade
         timestamp data_atualizacao
     }
@@ -118,232 +77,136 @@ erDiagram
 
 ---
 
-## 📊 Entidades Detalhadas
+## Entidades Detalhadas
 
-### 1. **INVESTIDOR** (Dados Mestres com SCD Type 2)
+### 1. INVESTIDOR
 
 **Propósito:** Armazenar informações de investidores (PF ou PJ)
 
-| Atributo | Tipo | Descrição | Constraint |
-|----------|------|-----------|-----------|
-| investidor_id | Integer | Identificador único | PK |
-| cpf_cnpj | String(20) | CPF ou CNPJ | UNIQUE, NOT NULL |
-| nome | String(200) | Nome completo | NOT NULL |
-| tipo | String(2) | PF (Pessoa Física) ou PJ (Pessoa Jurídica) | NOT NULL, CHECK (tipo IN ('PF', 'PJ')) |
-| email | String(100) | Email de contato | NOT NULL |
-| telefone | String(20) | Telefone de contato | |
-| data_criacao | Timestamp | Data de criação do registro | NOT NULL |
+| Atributo      | Tipo      | Descrição                     | Constraint              |
+| ------------- | --------- | ----------------------------- | ----------------------- |
+| investidor_id | Inteiro   | Identificador surrogate       | PK, gerado pelo banco   |
+| cpf_cnpj      | String    | CPF (PF) ou CNPJ (PJ)         | UNIQUE, Obrigatório     |
+| nome          | String    | Nome completo                 | Obrigatório             |
+| tipo          | String    | PF ou PJ                      | Obrigatório             |
+| email         | String    | Email de contato              | Obrigatório             |
+| telefone      | String    | Telefone de contato           | Opcional                |
 
-**Histórico:** `INVESTIDOR_HISTORICO` (SCD Type 2)
-
----
-
-### 2. **INVESTIDOR_HISTORICO** (SCD Type 2)
-
-**Propósito:** Rastrear mudanças em dados de investidores ao longo do tempo
-
-| Atributo | Tipo | Descrição | Constraint |
-|----------|------|-----------|-----------|
-| inv_hist_id | Integer | Identificador único | PK |
-| investidor_id | Integer | Referência ao investidor | FK → INVESTIDOR |
-| cpf_cnpj | String(20) | CPF ou CNPJ (versão histórica) | NOT NULL |
-| nome | String(200) | Nome (versão histórica) | NOT NULL |
-| tipo | String(2) | Tipo (versão histórica) | NOT NULL |
-| email | String(100) | Email (versão histórica) | |
-| telefone | String(20) | Telefone (versão histórica) | |
-| data_inicio | Date | Data de início dessa versão | NOT NULL |
-| data_fim | Date | Data de fim dessa versão (NULL se ativo) | |
-
-**SCD Type 2:** Quando um investidor muda, marca `data_fim` na linha anterior e insere nova linha com `data_inicio`
+**Requisito de negócio:** Mudanças nos dados do investidor devem ser rastreadas com histórico completo.
 
 ---
 
-### 3. **EMPRESA** (Dados Mestres com SCD Type 2)
+### 2. EMPRESA
 
 **Propósito:** Armazenar informações de empresas listadas na bolsa
 
-| Atributo | Tipo | Descrição | Constraint |
-|----------|------|-----------|-----------|
-| empresa_id | Integer | Identificador único | PK |
-| ticker | String(10) | Código de negociação | UNIQUE, NOT NULL |
-| nome | String(200) | Nome da empresa | NOT NULL |
-| setor | String(100) | Setor de atuação | NOT NULL |
-| valor_mercado | Decimal(15,2) | Valor de mercado em R$ | |
-| data_criacao | Timestamp | Data de criação | NOT NULL |
+| Atributo      | Tipo    | Descrição                      | Constraint            |
+| ------------- | ------- | ------------------------------ | --------------------- |
+| empresa_id    | Inteiro | Identificador surrogate        | PK, gerado pelo banco |
+| cnpj          | String  | CNPJ da empresa                | UNIQUE, Obrigatório   |
+| nome          | String  | Nome da empresa                | Obrigatório           |
+| setor         | String  | Setor de atuação               | Obrigatório           |
+| valor_mercado | Decimal | Valor de mercado (Market Cap)  | Opcional              |
 
-**Histórico:** `EMPRESA_HISTORICO` (SCD Type 2)
-
----
-
-### 4. **EMPRESA_HISTORICO** (SCD Type 2)
-
-**Propósito:** Rastrear mudanças em empresas (setor, valor de mercado, etc.)
-
-| Atributo | Tipo | Descrição | Constraint |
-|----------|------|-----------|-----------|
-| emp_hist_id | Integer | Identificador único | PK |
-| empresa_id | Integer | Referência à empresa | FK → EMPRESA |
-| ticker | String(10) | Ticker (versão histórica) | NOT NULL |
-| nome | String(200) | Nome (versão histórica) | NOT NULL |
-| setor | String(100) | Setor (versão histórica) | NOT NULL |
-| valor_mercado | Decimal(15,2) | Valor de mercado (versão histórica) | |
-| data_inicio | Date | Data de início dessa versão | NOT NULL |
-| data_fim | Date | Data de fim (NULL se ativo) | |
+**Requisito de negócio:** Mudanças nos dados da empresa devem ser rastreadas com histórico completo.
 
 ---
 
-### 5. **ACAO** (Dados Mestres com SCD Type 2)
+### 3. ACAO
 
-**Propósito:** Armazenar informações de ações emitidas por empresas
+**Propósito:** Armazenar ações emitidas por empresas, identificadas pelo ticker
 
-| Atributo | Tipo | Descrição | Constraint |
-|----------|------|-----------|-----------|
-| acao_id | Integer | Identificador único | PK |
-| empresa_id | Integer | Empresa que emitiu | FK → EMPRESA |
-| descricao | String(200) | Descrição da ação (ex: Ordinária, Preferencial) | NOT NULL |
-| data_criacao | Timestamp | Data de criação | NOT NULL |
+| Atributo | Tipo    | Descrição                       | Constraint            |
+| -------- | ------- | ------------------------------- | --------------------- |
+| acao_id  | Inteiro | Identificador surrogate         | PK, gerado pelo banco |
+| ticker   | String  | Código de negociação na bolsa   | UNIQUE, Obrigatório   |
+| tipo     | String  | Tipo da ação: ON, PN ou UNT     | Obrigatório           |
 
-**Histórico:** `ACAO_HISTORICO` (SCD Type 2)
-
----
-
-### 6. **ACAO_HISTORICO** (SCD Type 2)
-
-**Propósito:** Rastrear mudanças em ações
-
-| Atributo | Tipo | Descrição | Constraint |
-|----------|------|-----------|-----------|
-| acao_hist_id | Integer | Identificador único | PK |
-| acao_id | Integer | Referência à ação | FK → ACAO |
-| empresa_id | Integer | Empresa (versão histórica) | FK → EMPRESA |
-| descricao | String(200) | Descrição (versão histórica) | NOT NULL |
-| data_inicio | Date | Data de início dessa versão | NOT NULL |
-| data_fim | Date | Data de fim (NULL se ativo) | |
+**Requisito de negócio:** Mudanças nas características de uma ação devem ser rastreadas com histórico completo.
 
 ---
 
-### 7. **NEGOCIACAO** (Transacional, Imutável - SCD Type 1)
+### 4. NEGOCIACAO
 
-**Propósito:** Registrar todas as operações de compra e venda
+**Propósito:** Registrar todas as operações de compra e venda — entidade associativa entre INVESTIDOR e ACAO
 
-| Atributo | Tipo | Descrição | Constraint |
-|----------|------|-----------|-----------|
-| negociacao_id | Integer | Identificador único | PK |
-| investidor_id | Integer | Investidor que fez a operação | FK → INVESTIDOR |
-| acao_id | Integer | Ação negociada | FK → ACAO |
-| tipo_operacao | String(1) | 'C' (Compra) ou 'V' (Venda) | NOT NULL, CHECK (tipo_operacao IN ('C', 'V')) |
-| quantidade | Integer | Quantidade de ações | NOT NULL, CHECK (quantidade > 0) |
-| valor_unitario | Decimal(10,2) | Preço por ação na negociação | NOT NULL, CHECK (valor_unitario > 0) |
-| data_hora_transacao | Timestamp | Data e hora exata da negociação | NOT NULL |
+| Atributo            | Tipo      | Descrição                         | Constraint            |
+| ------------------- | --------- | --------------------------------- | --------------------- |
+| negociacao_id       | Inteiro   | Identificador surrogate           | PK, gerado pelo banco |
+| tipo_operacao       | String    | Compra (C) ou Venda (V)           | Obrigatório           |
+| quantidade          | Inteiro   | Quantidade de ações               | Obrigatório, positivo |
+| valor_unitario      | Decimal   | Preço por ação no momento         | Obrigatório, positivo |
+| data_hora_transacao | Timestamp | Data e hora exata da negociação   | Obrigatório           |
 
-**Imutável:** Nunca atualizar ou deletar. Tudo é rastreável por data/hora.
+> `valor_total` é atributo **derivado** (quantidade × valor_unitario) — não armazenado, calculado nas consultas.
 
----
-
-### 8. **COTACAO** (Histórico de Preços, Append-only - SCD Type 1)
-
-**Propósito:** Manter histórico de cotações de cada ação
-
-| Atributo | Tipo | Descrição | Constraint |
-|----------|------|-----------|-----------|
-| cotacao_id | Integer | Identificador único | PK |
-| acao_id | Integer | Ação | FK → ACAO |
-| valor | Decimal(10,4) | Preço da ação naquele momento | NOT NULL, CHECK (valor > 0) |
-| data_hora | Timestamp | Data e hora da cotação | NOT NULL |
-
-**Append-only:** Nunca atualizar ou deletar. Apenas inserir novos registros.
+**Regra de negócio:** Registros são imutáveis — apenas INSERT, nunca UPDATE ou DELETE.
 
 ---
 
-### 9. **SALDO_CARTEIRA** (Posição Consolidada)
+### 5. COTACAO
 
-**Propósito:** Registrar quantas ações cada investidor possui
+**Propósito:** Manter histórico de preços das ações ao longo do tempo
 
-| Atributo | Tipo | Descrição | Constraint |
-|----------|------|-----------|-----------|
-| saldo_carteira_id | Integer | Identificador único | PK |
-| investidor_id | Integer | Investidor | FK → INVESTIDOR |
-| acao_id | Integer | Ação | FK → ACAO |
-| quantidade | Integer | Quantidade em posição | NOT NULL, CHECK (quantidade >= 0) |
-| data_atualizacao | Timestamp | Última atualização | NOT NULL |
+| Atributo   | Tipo      | Descrição                    | Constraint            |
+| ---------- | --------- | ---------------------------- | --------------------- |
+| cotacao_id | Inteiro   | Identificador surrogate      | PK, gerado pelo banco |
+| valor      | Decimal   | Preço da ação no momento     | Obrigatório, positivo |
+| data_hora  | Timestamp | Data e hora da cotação       | Obrigatório           |
 
-**Índice Composto:** (investidor_id, acao_id) UNIQUE para garantir um registro por investidor-ação
+**Regra de negócio:** Append-only — apenas inserções, nunca atualizações ou remoções.
 
 ---
 
-## 🔗 Relacionamentos Detalhados
+### 6. SALDO_CARTEIRA
 
-| Relacionamento | Tipo | Descrição | Integridade |
-|---|---|---|---|
-| INVESTIDOR → NEGOCIACAO | 1:M | Um investidor realiza múltiplas negociações | FK NOT NULL |
-| INVESTIDOR → SALDO_CARTEIRA | 1:M | Um investidor tem saldos em múltiplas ações | FK NOT NULL |
-| EMPRESA → ACAO | 1:M | Uma empresa emite uma ou mais ações | FK NOT NULL |
-| ACAO → NEGOCIACAO | 1:M | Uma ação é negociada múltiplas vezes | FK NOT NULL |
-| ACAO → COTACAO | 1:M | Uma ação tem múltiplas cotações | FK NOT NULL |
-| ACAO → SALDO_CARTEIRA | 1:M | Uma ação é mantida em múltiplas carteiras | FK NOT NULL |
+**Propósito:** Registrar a posição atual de cada investidor por ação
 
----
+| Atributo         | Tipo      | Descrição                          | Constraint                |
+| ---------------- | --------- | ---------------------------------- | ------------------------- |
+| saldo_id         | Inteiro   | Identificador surrogate            | PK, gerado pelo banco     |
+| quantidade       | Inteiro   | Quantidade de ações em posição     | Obrigatório, não negativo |
+| data_atualizacao | Timestamp | Data da última atualização         | Obrigatório               |
 
-## 🎯 Decisões de Design
+> `valor_atual` é atributo **derivado** (quantidade × cotação atual) — calculado sob demanda via JOIN com COTACAO.
 
-### 1. **SCD Type 2 para Dados Mestres**
-- **Por quê:** Precisamos rastrear mudanças históricas em Investidores, Empresas e Ações
-- **Como:** Tabelas de histórico com `data_inicio` e `data_fim`
-- **Benefício:** Relatórios históricos são precisos ("qual era o setor em 2024?")
-
-### 2. **NEGOCIACAO e COTACAO são Imutáveis (Type 1)**
-- **Por quê:** Registros de transações NUNCA devem ser alterados (auditoria, conformidade)
-- **Como:** Apenas INSERT, nunca UPDATE/DELETE
-- **Benefício:** Trilha de auditoria completa e inquestionável
-
-### 3. **SALDO_CARTEIRA é Desnormalizado**
-- **Por quê:** Permite consultas rápidas de posição sem agregar NEGOCIACAO
-- **Como:** Atualizado via trigger ou application logic após cada NEGOCIACAO
-- **Benefício:** Performance em relatórios de carteira
-
-### 4. **Chaves Únicas para Dados Mestres**
-- **investidor_id:** CPF/CNPJ UNIQUE (não pode haver duplicata)
-- **empresa_id:** Ticker UNIQUE (código de negociação é único)
-- **saldo_carteira_id:** (investidor_id, acao_id) UNIQUE (um investidor, uma ação = um registro)
-
-### 5. **Constraints de Negócio**
-- `tipo_operacao IN ('C', 'V')` → Apenas Compra ou Venda
-- `tipo IN ('PF', 'PJ')` → Apenas Pessoa Física ou Jurídica
-- `quantidade > 0` e `valor_unitario > 0` → Valores positivos
-- `saldo_carteira.quantidade >= 0` → Saldo nunca negativo
+**Regras de negócio:**
+- Unicidade: um único registro por par `(investidor_id, acao_id)`
+- Quantidade pode ser 0 — registro mantido para preservar histórico da posição
+- Atualizado via **trigger** após cada INSERT em NEGOCIACAO
 
 ---
 
-## 📌 Notas Importantes
+## Relacionamentos
 
-1. **Histórico (SCD Type 2):** Quando dados mestres mudam, a operação é:
-   ```
-   UPDATE tabela_historico SET data_fim = TODAY() WHERE id = X AND data_fim IS NULL
-   INSERT INTO tabela_historico (id_ref, campos..., data_inicio, data_fim) VALUES (X, ..., TODAY(), NULL)
-   UPDATE tabela_mestre SET campos... WHERE id = X
-   ```
-
-2. **Reconciliação:** É possível validar:
-   - `SUM(NEGOCIACAO.quantidade WHERE tipo='C') - SUM(NEGOCIACAO.quantidade WHERE tipo='V') = SALDO_CARTEIRA.quantidade`
-
-3. **Escalabilidade:** O modelo suporta:
-   - Múltiplos investidores
-   - Múltiplas ações
-   - Histórico completo de cotações
-   - Análises retrospectivas
+| Relacionamento | Entidades | Cardinalidade | Descrição |
+| --- | --- | --- | --- |
+| emite | EMPRESA → ACAO | 1:N | Uma empresa pode ter zero ou mais ações (ex: pré-IPO ou ação retirada da bolsa) |
+| realiza | INVESTIDOR → NEGOCIACAO | 1:N | Um investidor pode ter zero ou mais negociações; toda negociação pertence obrigatoriamente a um investidor |
+| negociada_em | ACAO → NEGOCIACAO | 1:N | Uma ação pode ter zero ou mais negociações; toda negociação pertence obrigatoriamente a uma ação |
+| possui_cotacao | ACAO → COTACAO | 1:N | Uma ação pode ter zero ou mais cotações; toda cotação pertence obrigatoriamente a uma ação |
+| possui | INVESTIDOR → SALDO_CARTEIRA | 1:N | Um investidor pode ter zero ou mais registros de saldo; todo saldo pertence obrigatoriamente a um investidor |
+| registrada_em | ACAO → SALDO_CARTEIRA | 1:N | Uma ação pode ter zero ou mais registros de saldo; todo saldo pertence obrigatoriamente a uma ação |
 
 ---
 
-## ✅ Validação
+## Decisões de Design (para o Modelo Lógico)
 
-- [x] Todas as entidades identificadas
-- [x] Relacionamentos mapeados
-- [x] SCD Type 2 definido para dados mestres
-- [x] Constraints de negócio documentados
-- [x] Decisões justificadas
+| Decisão | Entidades afetadas | Descrição |
+| --- | --- | --- |
+| Surrogate keys | Todas | Todas as entidades usam surrogate PK (inteiro gerado); chaves de negócio como UNIQUE |
+| SCD Type 2 | INVESTIDOR, EMPRESA, ACAO | Rastreamento de histórico via tabelas auxiliares com `data_inicio` e `data_fim` |
+| Imutabilidade | NEGOCIACAO, COTACAO | Apenas INSERT — garantia de trilha de auditoria |
+| Chave mista CPF/CNPJ | INVESTIDOR | Armazenar apenas dígitos (VARCHAR(14)); CHECK composto vinculando `tipo` ao comprimento |
+| CNPJ alfanumérico | EMPRESA | IN RFB 2.229/2024 muda formato do CNPJ — surrogate key isola FKs do impacto |
+| Tipo de ação | ACAO | Campo `tipo` controlado: ON (Ordinária), PN (Preferencial), UNT (Units) |
+| Atributos derivados | NEGOCIACAO, SALDO_CARTEIRA | `valor_total` e `valor_atual` calculados nas consultas, não persistidos |
+| Trigger | SALDO_CARTEIRA | Saldo atualizado via trigger após INSERT em NEGOCIACAO |
+| Entidade CONTATO | INVESTIDOR | Avaliar entidade separada para múltiplos telefones e emails por investidor |
+| valor_mercado | EMPRESA | Definir no modelo lógico: persistido ou derivado (preço x ações emitidas) |
+| UNIQUE em COTACAO | COTACAO | Surrogate PK (cotacao_id) + UNIQUE (acao_id, data_hora) para evitar duas cotações no mesmo instante |
+| Cisão societária | ACAO, EMPRESA | Vínculo empresa_id → acao pode ser mutável em caso de cisão; decisão adiada para modelo lógico |
 
 ---
 
-**Status:** ⏳ **AGUARDANDO VALIDAÇÃO DO USUÁRIO**
-
-Você aprova este modelo conceitual para prosseguirmos para o **Modelo Lógico**?
+**Status:** ✅ MODELO CONCEITUAL VALIDADO — Pronto para avançar ao Modelo Lógico

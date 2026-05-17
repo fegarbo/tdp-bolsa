@@ -15,7 +15,7 @@ vision:
   hybrid: 'OLTP (transações) + OLAP (relatórios)'
   keyPattern: 'SCD Type 2 para dados mestres com histórico'
   focus: 'Relacionamentos e integridade referencial bem construídos'
-  stage: 'Modelagem Completa até 03/05'
+  stage: 'Modelagem Completa até 10/05'
   sgbd: 'PostgreSQL'
   deliverables: 'Modelo Conceitual + Modelo Lógico + Modelo Físico (DDL + DML + DQL)'
 ---
