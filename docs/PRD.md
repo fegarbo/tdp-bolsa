@@ -82,6 +82,7 @@ Este design diferencia-se por seu **equilíbrio pragmático entre integridade e 
 
 **Entidades Obrigatórias:**
 - Investidores (com SCD Type 2 para mudanças de perfil)
+- Contatos (múltiplos telefones e emails por investidor)
 - Empresas (com SCD Type 2 para mudanças de setor/mercado)
 - Ações (com SCD Type 2 para mudanças de características)
 - Cotações (histórico append-only de preços)

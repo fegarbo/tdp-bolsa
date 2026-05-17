@@ -11,6 +11,7 @@ Construído para **PostgreSQL**, o schema suporta operações transacionais em t
 O sistema gerencia as entidades centrais de uma operação de corretora:
 
 - **Investidores** — pessoas físicas (CPF) e jurídicas (CNPJ)
+- **Contatos** — múltiplos telefones e emails por investidor
 - **Empresas** — listadas na bolsa, identificadas por CNPJ
 - **Ações** — emitidas por empresas, identificadas por ticker (ex: PETR3, SANB4)
 - **Negociações** — registros imutáveis de compra/venda por investidor e ação
@@ -42,6 +43,7 @@ Principais decisões de design:
 erDiagram
     INVESTIDOR ||--o{ NEGOCIACAO : realiza
     INVESTIDOR ||--o{ SALDO_CARTEIRA : possui
+    INVESTIDOR ||--o{ CONTATO : possui_contato
 
     EMPRESA ||--o{ ACAO : emite
 
@@ -50,45 +52,49 @@ erDiagram
     ACAO ||--o{ SALDO_CARTEIRA : registrada_em
 
     INVESTIDOR {
-        int investidor_id PK
+        int    investidor_id PK
         string cpf_cnpj UK
         string nome
         string tipo
-        string email
-        string telefone
+    }
+
+    CONTATO {
+        int    contato_id PK
+        string tipo
+        string valor
     }
 
     EMPRESA {
-        int empresa_id PK
+        int    empresa_id PK
         string cnpj UK
         string nome
         string setor
-        decimal valor_mercado
     }
 
     ACAO {
-        int acao_id PK
+        int    acao_id PK
         string ticker UK
         string tipo
+        int    total_acoes
     }
 
     NEGOCIACAO {
-        int negociacao_id PK
-        string tipo_operacao
-        int quantidade
-        decimal valor_unitario
+        int       negociacao_id PK
+        string    tipo_operacao
+        int       quantidade
+        decimal   valor_unitario
         timestamp data_hora_transacao
     }
 
     COTACAO {
-        int cotacao_id PK
-        decimal valor
+        int       cotacao_id PK
+        decimal   valor
         timestamp data_hora
     }
 
     SALDO_CARTEIRA {
-        int saldo_id PK
-        int quantidade
+        int       saldo_id PK
+        int       quantidade
         timestamp data_atualizacao
     }
 ```
