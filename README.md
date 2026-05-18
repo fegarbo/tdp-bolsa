@@ -11,7 +11,7 @@ Construído para **PostgreSQL**, o schema suporta operações transacionais em t
 O sistema gerencia as entidades centrais de uma operação de corretora:
 
 - **Investidores** — pessoas físicas (CPF) e jurídicas (CNPJ)
-- **Contatos** — múltiplos telefones e emails por investidor
+- **Contatos** — múltiplos telefones, emails e WhatsApp por investidor
 - **Empresas** — listadas na bolsa, identificadas por CNPJ
 - **Ações** — emitidas por empresas, identificadas por ticker (ex: PETR3, SANB4)
 - **Negociações** — registros imutáveis de compra/venda por investidor e ação
@@ -22,6 +22,7 @@ Principais decisões de design:
 
 - **SCD Type 2** em dados mestres (Investidores, Empresas, Ações) para histórico completo de mudanças
 - **Registros imutáveis** em Negociações e Cotações — apenas INSERT, trilha de auditoria garantida
+- **Trigger automático** mantém o Saldo de Carteira consistente após cada negociação
 - **Suporte híbrido OLTP + OLAP** sem necessidade de redesign futuro
 - **Integridade referencial forte** via constraints FK, CHECK e índices UNIQUE compostos
 
@@ -75,7 +76,7 @@ erDiagram
         int    acao_id PK
         string ticker UK
         string tipo
-        int    total_acoes
+        bigint total_acoes
     }
 
     NEGOCIACAO {
@@ -121,14 +122,16 @@ erDiagram
 
 ## Executando os Scripts
 
+Os scripts devem ser executados na ordem abaixo. O `ddl.sql` inclui `DROP` de todos os objetos antes de recriá-los — seguro para re-execução.
+
 ```bash
-# Criar o schema
+# 1. Criar o schema (tabelas, índices, view e trigger)
 psql -U <usuario> -d <banco> -f sql/ddl.sql
 
-# Carregar dados de teste
+# 2. Carregar dados de teste
 psql -U <usuario> -d <banco> -f sql/dml.sql
 
-# Executar consultas analíticas
+# 3. Executar consultas analíticas
 psql -U <usuario> -d <banco> -f sql/dql.sql
 ```
 
